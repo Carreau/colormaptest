@@ -100,24 +100,26 @@ function compute(){
 compute()
 
 d3.select(window).on("mousemove", function() {
-  var canvas = d3.select("#viridis").node().getContext('2d')
-  var radius = Math.sqrt((d3.event.clientX-250)**2+(d3.event.clientY-250)**2)
+  var canvas = d3.select("#viridis").node();
+  var context = canvas.getContext('2d')
+  var radius = Math.sqrt((d3.event.clientX-250-canvas.offsetLeft)**2+(d3.event.clientY-250-canvas.offsetTop)**2)
   
   console.log('radius', radius)
-  canvas.clearRect(0, 0, 500, 500);
-  canvas.putImageData(viridis, 0, 0);
-  canvas.setLineDash([5,5]);
-  canvas.beginPath()
-  canvas.arc(250, 250, radius, 0, 2 * Math.PI);
-  canvas.stroke()
-  var canvas = d3.select("#jet").node().getContext('2d')
-  var radius = Math.sqrt((d3.event.clientX-250)**2+(d3.event.clientY-250)**2)
-  canvas.clearRect(0, 0, 500, 500);
-  canvas.putImageData(jet, 0, 0);
-  canvas.setLineDash([5, 5]);
-  canvas.beginPath()
-  canvas.arc(250, 250, radius, 0, 2 * Math.PI);
-  canvas.stroke()
+  context.clearRect(0, 0, 500, 500);
+  context.putImageData(viridis, 0, 0);
+  context.setLineDash([5,5]);
+  context.beginPath()
+  context.arc(250, 250, radius, 0, 2 * Math.PI);
+  context.stroke()
+  var canvas = d3.select("#jet").node()
+  var context = canvas.getContext('2d')
+  var radius = Math.sqrt((d3.event.clientX-250-canvas.offsetLeft)**2+(d3.event.clientY-250-canvas.offsetTop)**2)
+  context.clearRect(0, 0, 500, 500);
+  context.putImageData(jet, 0, 0);
+  context.setLineDash([5, 5]);
+  context.beginPath()
+  context.arc(250, 250, radius, 0, 2 * Math.PI);
+  context.stroke()
 });
 
 </script>
