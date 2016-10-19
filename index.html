@@ -1,28 +1,125 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<canvas width="960" height="500"></canvas>
+<div id='sketch' width="500" height="500"></div>
+<canvas id='jet' width="500" height="500"></canvas>
+<canvas id='viridis' width="500" height="500"></canvas>
 <script src="d3.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v0.3.min.js"></script>
 <script>
 
-var canvas = document.querySelector("canvas"),
-    width = canvas.width,
-    height = canvas.height,
-    context = canvas.getContext("2d"),
-    image = context.createImageData(width, height),
-    hue,
-    y = -1,
-    i = -1;
+var jump = 0.03
+var loc = 0.5
 
-while (++y < height) {
-  for (var x = 0, c; x < width; ++x) {
-    c = d3.hcl(360 * y / (height - 1), 50, 100 * (1 - x / (width - 1))).rgb();
-    image.data[++i] = c.r;
-    image.data[++i] = c.g;
-    image.data[++i] = c.b;
-    image.data[++i] = 255;
-  }
+function step(t){
+    if(t < loc){
+        return t/(1+jump)
+    }else {
+        return (t+jump)/(1+jump)
+    }
+
 }
 
-context.putImageData(image, 0, 0);
+var width = height = 500
+var sketch = d3.select("#sketch")
+    .attr("width", '500px')
+    .attr("height", '500px')
+    .call(custom)
+
+function custom(selection) {
+  selection.each(function() {
+    var root = this,
+        canvas = root.parentNode.appendChild(document.createElement("canvas")),
+        //canvas = document.getElementById("jet")
+        context = canvas.getContext("2d");
+
+
+
+    canvas.style.position = "absolute";
+    canvas.style.top = root.offsetTop + "px";
+    canvas.style.left = root.offsetLeft + "px";
+
+    // It'd be nice to use DOM Mutation Events here instead.
+    // However, they appear to arrive irregularly, causing choppy animation.
+    d3.timer(redraw);
+
+    // Clear the canvas and then iterate over child elements.
+    function redraw() {
+      canvas.width = width;
+      canvas.height = height;
+      for (var child = root.firstChild; child; child = child.nextSibling) draw(child);
+    }
+
+    // For now we only support circles with strokeStyle.
+    // But you should imagine extending this to arbitrary shapes and groups!
+    function draw(element) {
+      switch (element.tagName) {
+        case "circle": {
+          context.strokeStyle = element.getAttribute("strokeStyle");
+          context.beginPath();
+          context.arc(element.getAttribute("x"), element.getAttribute("y"), element.getAttribute("radius"), 0, 2 * Math.PI);
+          context.stroke();
+          break;
+        }
+      }
+    }
+  });
+};
+
+
+function make(cmap, context, width, height){
+    var image = context.createImageData(width, height),
+        hue,
+        y = -1,
+        i = -1;
+    while (++y < height) {
+      for (var x = 0, c; x < width; ++x) {
+        d = 1-Math.sqrt((x-250)**2+(y-250)**2)/250/1.414    
+        c = d3.color(cmap(step(d)));
+        image.data[++i] = c.r;
+        image.data[++i] = c.g;
+        image.data[++i] = c.b;
+        image.data[++i] = 255;
+      }
+    }
+    return image
+}
+
+
+//make(d3.interpolateRainbow, 'jet')
+//make(d3.interpolateViridis, "viridis")
+c = document.getElementById('jet').getContext('2d')
+var jet;
+var viridis;
+
+function compute(){
+    jet = make(d3.interpolateRainbow, c , 500, 500)
+    viridis = make(d3.interpolateViridis, c , 500, 500)
+}
+
+compute()
+
+d3.select(window).on("mousemove", function() {
+  var canvas = d3.select("#viridis").node().getContext('2d')
+  var radius = Math.sqrt((d3.event.clientX-250)**2+(d3.event.clientY-250)**2)
+  
+  console.log('radius', radius)
+  canvas.clearRect(0, 0, 500, 500);
+  canvas.putImageData(viridis, 0, 0);
+  canvas.setLineDash([5,5]);
+  canvas.beginPath()
+  canvas.arc(250, 250, radius, 0, 2 * Math.PI);
+  canvas.stroke()
+  var canvas = d3.select("#jet").node().getContext('2d')
+  var radius = Math.sqrt((d3.event.clientX-250)**2+(d3.event.clientY-250)**2)
+  canvas.clearRect(0, 0, 500, 500);
+  canvas.putImageData(jet, 0, 0);
+  canvas.setLineDash([5, 5]);
+  canvas.beginPath()
+  canvas.arc(250, 250, radius, 0, 2 * Math.PI);
+  canvas.stroke()
+});
 
 </script>
+
+
