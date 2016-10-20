@@ -53,7 +53,7 @@ function make(cmap, context, width, height){
         i = -1;
     while (++y < height) {
       for (var x = 0, c; x < width; ++x) {
-        d = 1-Math.sqrt((x-250)**2+(y-250)**2)/250/1.414    
+        d = 1-Math.sqrt((x-250)*(x-250)+(y-250)*(y-250))/250/1.414    
         c = d3.color(cmap(step(d)));
         image.data[++i] = c.r;
         image.data[++i] = c.g;
