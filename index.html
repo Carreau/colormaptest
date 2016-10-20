@@ -22,10 +22,11 @@
       margin:auto;
       display: block;
       width: 500px;
-    
+
     }
 </style>
 <script>
+"use strict"
 
 var jump = 0.03
 var loc = 0.5
@@ -39,7 +40,8 @@ function step(t){
 
 }
 
-var width = height = 500
+var height = 500;
+var width = height;
 var sketch = d3.select("#sketch")
     .attr("width", '500px')
     .attr("height", '500px')
@@ -53,8 +55,8 @@ function make(cmap, context, width, height){
         i = -1;
     while (++y < height) {
       for (var x = 0, c; x < width; ++x) {
-        d = 1-Math.sqrt((x-250)*(x-250)+(y-250)*(y-250))/250/1.414    
-        c = d3.color(cmap(step(d)));
+        var d = 1-Math.sqrt((x-250)*(x-250)+(y-250)*(y-250))/250/Math.sqrt(2)
+        var c = d3.color(cmap(step(d)));
         image.data[++i] = c.r;
         image.data[++i] = c.g;
         image.data[++i] = c.b;
@@ -66,7 +68,7 @@ function make(cmap, context, width, height){
 
 
 
-c = document.getElementById('jet').getContext('2d')
+var c = document.getElementById('jet').getContext('2d')
 var jet;
 var viridis;
 
@@ -78,7 +80,7 @@ function compute(){
 compute()
 
 d3.select(window).on("mousemove", redraw)
-        
+
 var redraw = function() {
   // var canvas = d3.select("#viridis").node();
   // var context = canvas.getContext('2d')
@@ -127,7 +129,7 @@ d3.select(window).on("click", function() {
         return
     }
 
-    guessed = Math.sqrt((x-250)**2 + (y-250)**2)/ 250 / Math.sqrt(2)
+    var guessed = Math.sqrt((x-250)**2 + (y-250)**2)/ 250 / Math.sqrt(2)
     var data = {
         xclick:x,
         yclick:y,
