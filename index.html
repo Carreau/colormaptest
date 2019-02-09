@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <h1> Click on th discontinuity<h1>
-<canvas id='jet' width="500" height="500"></canvas>
+<canvas id='jet' width="512" height="512"></canvas>
+<!--<img src='quant.png' width='512' height='512'><img /> -->
 <label>x</label>
 <select id='x'>
     <option selected=true value='loc'>Jump location</option>
@@ -40,33 +41,50 @@
         text-align: center;
     }
 
-    canvas {
+    canvas , img {
       margin:auto;
       display: block;
-      width: 500px;
+      width: 512px;
 
     }
 </style>
 <script>
 "use strict"
 
+var HEIGHT = 512;
+
+
 var jump = 0.03
 var loc = 0.5
+var delta = 0.01
 
 function step(t){
+    var x0
+    var y0
+    var x1
+    var y1
     if(t < loc){
-        return t/(1+jump)
-    }else {
-        return (t+jump)/(1+jump)
+        x0 =  0
+        y0 =  0
+        x1 =  loc
+        y1 =  loc
+    } else if ( (t >= loc) && (t < loc+delta)){
+        x0 = loc
+        y0 = loc
+        x1 = loc+delta
+        y1 = loc+jump
+    } else {
+        x0 = loc+delta
+        y0 = loc+jump
+        x1 = 1
+        y1 = 1+jump
     }
-
+    return (y0+(t-x0)*(y1-y0)/(x1-x0))/(1+jump)
 }
 
-var height = 500;
-var width = height;
-var sketch = d3.select("#sketch")
-    .attr("width", '500px')
-    .attr("height", '500px')
+var height = HEIGHT;
+var width = HEIGHT;
+var semiheight = HEIGHT/2
 
 
 
@@ -77,7 +95,7 @@ function make(cmap, context, width, height){
         i = -1;
     while (++y < height) {
       for (var x = 0, c; x < width; ++x) {
-        var d = Math.sqrt((x-250)*(x-250)+(y-250)*(y-250))/250/Math.sqrt(2)
+        var d = Math.sqrt((x-semiheight)*(x-semiheight)+(y-semiheight)*(y-semiheight))/semiheight/Math.sqrt(2)
         var c = d3.color(cmap(step(d)));
         image.data[++i] = c.r;
         image.data[++i] = c.g;
@@ -97,6 +115,7 @@ var viridis;
 function compute(){
     jet = make(d3.interpolateRainbow, c , 500, 500)
     viridis = make(function(t){ return d3.interpolateViridis(1-t)}, c , 500, 500)
+    // jet = make(function(t){ return d3.interpolateGreys(1-t)}, c , 500, 500)
 }
 
 compute()
@@ -104,19 +123,6 @@ compute()
 d3.select(window).on("mousemove", redraw)
 
 var redraw = function() {
-  // var canvas = d3.select("#viridis").node();
-  // var context = canvas.getContext('2d')
-  // var coord = d3.mouse(canvas)
-  // var x = coord[0] 
-  // var y = coord[1] 
-  // var radius = Math.sqrt((x-250)**2+(y-250)**2)
-  // 
-  // context.clearRect(0, 0, 500, 500);
-  // context.putImageData(viridis, 0, 0);
-  // context.setLineDash([5,5]);
-  // context.beginPath()
-  // context.arc(250, 250, radius, 0, 2 * Math.PI);
-  // context.stroke()
   var canvas = d3.select("#jet").node()
   var context = canvas.getContext('2d')
   var x,y
@@ -128,12 +134,12 @@ var redraw = function() {
         x =0;
         y =0
     }
-  var radius = Math.sqrt((x-250)**2+(y-250)**2)
-  context.clearRect(0, 0, 500, 500);
+  var radius = Math.sqrt((x-semiheight)**2+(y-semiheight)**2)
+  context.clearRect(0, 0, HEIGHT, HEIGHT);
   context.putImageData(jet, 0, 0);
-  context.setLineDash([5, 5]);
+  context.setLineDash([5, 5, 5, 5, 50]);
   context.beginPath()
-  context.arc(250, 250, radius, 0, 1 * Math.PI);
+  context.arc(semiheight, semiheight, radius, 0, 2 * Math.PI);
   context.stroke()
 }
 
@@ -151,11 +157,11 @@ d3.select(window).on("click", function() {
     var coord = d3.mouse(canvas)
     var x = coord[0] 
     var y = coord[1] 
-    if (x<0 || x > 500 || y < 0 || y > 500){
+    if (x<0 || x > HEIGHT || y < 0 || y > HEIGHT){
         return
     }
 
-    var guessed = Math.sqrt((x-250)**2 + (y-250)**2)/ 250 / Math.sqrt(2)
+    var guessed = Math.sqrt((x-semiheight)**2 + (y-semiheight)**2)/ semiheight / Math.sqrt(2)
     var data = {
         xclick:x,
         yclick:y,
@@ -168,10 +174,10 @@ d3.select(window).on("click", function() {
     }
     console.log(data)
     alldata.push(data)
-    localStorage.setItem('cmapdata',JSON.stringify(alldata))
+    /*localStorage.setItem('cmapdata',JSON.stringify(alldata))*/
     sc(alldata)
 
-    jump = Math.random()/50
+    jump = 0.03+Math.random()/50
     loc = Math.random()
     compute()
 
@@ -191,7 +197,7 @@ redraw()
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = HEIGHT - margin.top - margin.bottom;
 
 /* 
  * value accessor - returns the value to encode for a given data object.
@@ -203,7 +209,7 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
 
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = HEIGHT - margin.top - margin.bottom;
 
 // parse the date / time
 
